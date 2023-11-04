@@ -1,0 +1,22 @@
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heydocker"
+version = "0.0.1"
+description = "Empower your Docker workflows and system monitoring with HeyDocker, your virtual Docker companion in your chat app. Streamline operations, gain insights, and maintain optimal performance effortlessly."
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "docker",
+    "python-telegram-bot",
+    "speedtest-cli",
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+heydocker = "heydocker.main:main"

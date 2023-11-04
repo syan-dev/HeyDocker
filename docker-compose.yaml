@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  dockerbot:
+    image: dockerbot
+    build: .
+    container_name: dockerbot
+    network_mode: host
+    privileged: true
+    restart: always
+    command: heydocker
+    environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - ALLOWED_IDS=${ALLOWED_IDS}
+    volumes:
+       - /var/run/docker.sock:/var/run/docker.sock
