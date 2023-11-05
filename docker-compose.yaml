@@ -12,5 +12,7 @@ services:
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - ALLOWED_IDS=${ALLOWED_IDS}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_KEY=${AZURE_OPENAI_KEY}
     volumes:
        - /var/run/docker.sock:/var/run/docker.sock
