@@ -23,6 +23,9 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
+# check if database directory exists
+if not os.path.exists(os.path.expanduser("~/.heydocker")):
+    os.makedirs(os.path.expanduser("~/.heydocker"))
 database = Database(os.path.expanduser("~/.heydocker/heydocker.db"))
 database.create_table()
 
