@@ -1,19 +1,14 @@
-import os
 import logging
+import os
 from functools import wraps
 
 from telegram import ForceReply, Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
+from telegram.ext import (Application, CommandHandler, ContextTypes,
+                          MessageHandler, filters)
 
+from heydocker.config import get_telegram_allowed_ids, get_telegram_token
 from heydocker.database import Database
 from heydocker.functions import run
-from heydocker.config import get_telegram_allowed_ids, get_telegram_token
 
 # Enable logging
 logging.basicConfig(
@@ -68,7 +63,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the user message."""
     logger.info(f"User question: {update.message.text}")
-    database.insert(update.message.from_user['username'], update.message.text)
+    database.insert(update.message.from_user["username"], update.message.text)
     response = run(update.message.text)
     logger.info(f"Response message: {response}")
     database.insert(None, response)

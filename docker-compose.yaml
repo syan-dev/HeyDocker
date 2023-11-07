@@ -9,10 +9,10 @@ services:
     privileged: true
     restart: always
     command: heydocker
-    environment:
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      - TELEGRAM_ALLOWED_IDS=${TELEGRAM_ALLOWED_IDS}
-      - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
-      - OPENAI_KEY=${OPENAI_KEY}
+    # environment:
+    #   - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+    #   - TELEGRAM_ALLOWED_IDS=${TELEGRAM_ALLOWED_IDS}
+    #   - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
+    #   - OPENAI_KEY=${OPENAI_KEY}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

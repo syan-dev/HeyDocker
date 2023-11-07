@@ -6,12 +6,9 @@ import subprocess
 
 import docker
 
-from heydocker.functions.utils import (
-    convert_container_to_json,
-    convert_image_to_json,
-    convert_stats,
-    convert_volume_to_json,
-)
+from heydocker.functions.utils import (convert_container_to_json,
+                                       convert_image_to_json, convert_stats,
+                                       convert_volume_to_json)
 
 logger = logging.getLogger(__name__)
 

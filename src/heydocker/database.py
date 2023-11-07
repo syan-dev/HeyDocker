@@ -27,7 +27,3 @@ class Database:
         self.cursor.execute("SELECT * FROM messages ORDER BY id DESC LIMIT 100")
         # return in json format and sorted oldest to newest
         return [{"id": x[0], "username": x[1], "message": x[2]} for x in self.cursor]
-    
-    def get_latest(self) -> Dict:
-        self.cursor.execute("SELECT * FROM messages ORDER BY id DESC LIMIT 1")
-        return [{"id": x[0], "username": x[1], "message": x[2]} for x in self.cursor]

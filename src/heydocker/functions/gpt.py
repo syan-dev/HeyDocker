@@ -5,8 +5,8 @@ import os
 import openai
 from docstring_parser import parse
 
-from heydocker.functions import functions
 from heydocker.config import get_openai_api_key, get_openai_endpoint
+from heydocker.functions import functions
 
 logger = logging.getLogger(__name__)
 
