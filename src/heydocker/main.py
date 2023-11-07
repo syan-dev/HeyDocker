@@ -1,16 +1,19 @@
-import json
-import logging
 import os
-import re
-import subprocess
+import logging
 from functools import wraps
 
 from telegram import ForceReply, Update
-from telegram.ext import (Application, CommandHandler, ContextTypes,
-                          MessageHandler, filters)
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
-from heydocker import AUDIO, PHOTO, PHOTO_URL, TEXT, VIDEO
+from heydocker.database import Database
 from heydocker.functions import run
+from heydocker.config import get_telegram_allowed_ids, get_telegram_token
 
 # Enable logging
 logging.basicConfig(
@@ -18,22 +21,10 @@ logging.basicConfig(
 )
 # set higher logging level for httpx to avoid all GET and POST requests being logged
 logging.getLogger("httpx").setLevel(logging.WARNING)
-
 logger = logging.getLogger(__name__)
 
-token = os.environ.get("TELEGRAM_TOKEN")
-
-if token is None:
-    raise ValueError("TELEGRAM_TOKEN environment variable not set.")
-
-allowed_ids = os.environ.get("ALLOWED_IDS")
-logger.info(f"Allow IDs: {allowed_ids}")
-if allowed_ids:
-    allowed_ids = [int(x) for x in allowed_ids.split(",")]
-else:
-    allowed_ids = []
-
-logger.info(f"Allow IDs: {allowed_ids}")
+database = Database(os.path.expanduser("~/.heydocker/heydocker.db"))
+database.create_table()
 
 
 def check_user_allowed(command_handler):
@@ -41,6 +32,8 @@ def check_user_allowed(command_handler):
     async def wrapper(
         update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs
     ):
+        allowed_ids = get_telegram_allowed_ids()
+        logger.info(f"Allow IDs: {allowed_ids}")
         id = update.effective_user.id
         if id in allowed_ids:
             return await command_handler(update, context, *args, **kwargs)
@@ -72,28 +65,40 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the user message."""
     logger.info(f"User question: {update.message.text}")
-    if update.message.text == "Restart the container dockerbot for me":
-        await update.message.reply_text("Fuck you")
-    else:
-        response = run(update.message.text)
-        logger.info(f"Response message: {response}")
+    database.insert(update.message.from_user['username'], update.message.text)
+    response = run(update.message.text)
+    logger.info(f"Response message: {response}")
+    database.insert(None, response)
 
-        await update.message.reply_text(response)
+    await update.message.reply_text(response)
 
 
 def main():
     """Start the bot."""
-    # Create the Application and pass it your bot's token.
-    application = Application.builder().token(token).build()
+    while True:
+        try:
+            token = get_telegram_token()
 
-    # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
+            # Create the Application and pass it your bot's token.
+            application = (
+                Application.builder()
+                .token(token)
+                .read_timeout(60)
+                .write_timeout(60)
+                .build()
+            )
 
-    # on non command i.e message - echo the message on Telegram
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
-    )
+            # on different commands - answer in Telegram
+            application.add_handler(CommandHandler("start", start))
+            application.add_handler(CommandHandler("help", help_command))
 
-    # Run the bot until the user presses Ctrl-C
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+            # on non command i.e message - echo the message on Telegram
+            application.add_handler(
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+            )
+
+            # Run the bot until the user presses Ctrl-C
+            application.run_polling(allowed_updates=Update.ALL_TYPES)
+        except Exception as e:
+            logger.error(e)
+            continue

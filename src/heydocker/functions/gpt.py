@@ -1,25 +1,71 @@
+import inspect
 import logging
 import os
 
 import openai
+from docstring_parser import parse
 
 from heydocker.functions import functions
+from heydocker.config import get_openai_api_key, get_openai_endpoint
 
 logger = logging.getLogger(__name__)
 
-openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT")
-openai.api_key = os.getenv("AZURE_OPENAI_KEY")
-openai.api_version = "2023-07-01-preview"
-openai.api_type = "azure"
+
+def generate_gpt_functions(available_functions):
+    """get all functions from functions.py"""
+    python_obj_to_json_obj = {
+        "str": "string",
+        "int": "integer",
+        "float": "number",
+        "bool": "boolean",
+        "list": "array",
+        "dict": "object",
+    }
+
+    gpt_functions = []
+
+    for function in available_functions:
+        name = function.__name__
+        docstring = inspect.getdoc(function)
+        docstring_obj = parse(docstring)
+        description = docstring_obj.short_description
+
+        properties = {}
+        for param in docstring_obj.params:
+            param_name = param.arg_name
+            param_type = param.type_name
+            param_description = param.description
+
+            properties[param_name] = {
+                "type": python_obj_to_json_obj[param_type],
+                "description": param_description,
+            }
+
+        gpt_functions.append(
+            {
+                "name": name,
+                "description": description,
+                "parameters": {"type": "object", "properties": properties},
+            }
+        )
+
+    return gpt_functions
+
+
+available_functions = [
+    func
+    for func in functions.__dict__.values()
+    if callable(func) and func.__module__ == functions.__name__
+]
+gpt_functions = generate_gpt_functions(available_functions)
 
 
 class GPTClient:
-    def __init__(self, functions):
+    def __init__(self):
         self.header = {
             "role": "system",
-            "content": "You are a helpful assistant on a chat app. You can help user to monitor, remote, and control their server. Don't make assumptions about what values to use with functions. Ask for clarification if a user request is ambiguous. Always answer with human-readable text.",
+            "content": "You are a helpful assistant on a chat app. You can help user to monitor, remote, and control their docker server. Don't make assumptions about what values to use with functions. Ask for clarification if a user request is ambiguous. Always answer with human-readable text.",
         }
-        self.functions = functions
         self.history = []
 
     @property
@@ -30,6 +76,11 @@ class GPTClient:
         self.history.append(message)
 
     def handle_command(self, command):
+        openai.api_base = get_openai_endpoint()
+        openai.api_key = get_openai_api_key()
+        openai.api_version = "2023-07-01-preview"
+        openai.api_type = "azure"
+
         self.add_message(
             {
                 "role": "user",
@@ -40,7 +91,7 @@ class GPTClient:
         response = openai.ChatCompletion.create(
             engine="gpt-35-turbo-0613",
             messages=self.messages,
-            functions=self.functions,
+            functions=gpt_functions,
             function_call="auto",
         )
 
@@ -81,45 +132,24 @@ class GPTClient:
 
             # Call the API again to get the final response from the model
             second_response = openai.ChatCompletion.create(
-                messages=self.messages,
-                deployment_id="gpt-35-turbo-0613"
+                messages=self.messages, deployment_id="gpt-35-turbo-0613"
+            )
+
+            self.add_message(
+                {
+                    "role": second_response["choices"][0]["message"]["role"],
+                    "content": second_response["choices"][0]["message"]["content"],
+                }
             )
 
             return second_response["choices"][0]["message"]["content"]
-        
+
         else:
+            self.add_message(
+                {
+                    "role": response_message["role"],
+                    "content": response_message["content"],
+                }
+            )
+
             return response_message["content"]
-
-
-# def gpt_function_calling(messages, functions):
-#     # messages = [
-#     #     {
-#     #         "role": "user",
-#     #         "content": message,
-#     #     }
-#     # ]
-#     response = openai.ChatCompletion.create(
-#         engine="gpt-35-turbo-0613",
-#         messages=messages,
-#         functions=functions,
-#         function_call="auto",
-#     )
-
-#     return response
-
-
-# def gpt_chat(messages, command, data):
-#     response = openai.ChatCompletion.create(
-#         engine="gpt-35-turbo-0613",
-#         # messages=[
-#         #     {"role": "system", "content": "You are a helpful assistant on a chat app. The user wants to use you to monitor, remote, and control their server. Please reformat all the data into a human-readable format and make it suitable for the user's question."},
-#         #     {
-#         #         "role": "user",
-#         #         "content": question,
-#         #     },
-#         #     {"role": "system", "content": f"The command '{command}' has been executed, and the output is: '{data}'. Please help me combine this result with the user's question and send it back to the user."},
-#         # ],
-#         messages=messages,
-#     )
-
-#     return response

@@ -15,8 +15,9 @@ dependencies = [
     "docker",
     "python-telegram-bot",
     "speedtest-cli",
-    "openai",
+    "openai==0.28.1",
     "docstring_parser",
+    "python-dateutil"
 ]
 requires-python = ">=3.8"
 
