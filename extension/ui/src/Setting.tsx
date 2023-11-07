@@ -12,23 +12,21 @@ import Grid from "@mui/material/Grid";
 import { createDockerDesktopClient } from "@docker/extension-api-client";
 
 const Setting = () => {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const [telegramToken, setTelegramToken] = React.useState<string>('');
   const [telegramAllowedIds, setTelegramAllowedIds] = React.useState<string>('');
-  const [openaiEndpoint, setOpenaiEndpoint] = React.useState<string>('');
   const [openaiApiKey, setOpenaiApiKey] = React.useState<string>('');
 
-  // if all varaible telegramToken, telegramAllowedIds, openaiEndpoint, openaiApiKey are null, then open the dialog
+  // if all varaible telegramToken, telegramAllowedIds, openaiApiKey are null, then open the dialog
   React.useEffect(() => {
     if (
       telegramToken === '' ||
       telegramAllowedIds === '' ||
-      openaiEndpoint === '' ||
       openaiApiKey === ''
     ) {
       setOpen(true);
     }
-  }, [telegramToken, telegramAllowedIds, openaiEndpoint, openaiApiKey]);
+  }, [telegramToken, telegramAllowedIds, openaiApiKey]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -36,14 +34,6 @@ const Setting = () => {
 
   const handleClose = () => {
     // not allow to close the dialog if any of the variable is null
-    if (
-      telegramToken === '' ||
-      telegramAllowedIds === '' ||
-      openaiEndpoint === '' ||
-      openaiApiKey === '' 
-    ) {
-      return;
-    }
     setOpen(false);
   };
 
@@ -52,8 +42,7 @@ const Setting = () => {
     if (
       telegramToken === '' ||
       telegramAllowedIds === '' ||
-      openaiEndpoint === '' ||
-      openaiApiKey === ''
+      openaiApiKey === '' 
     ) {
       return;
     }
@@ -63,7 +52,6 @@ const Setting = () => {
       JSON.stringify({
         token: telegramToken,
         allowed_ids: telegramAllowedIds,
-        openai_endpoint: openaiEndpoint,
         openai_api_key: openaiApiKey,
       })
     );
@@ -104,16 +92,6 @@ const Setting = () => {
                 sx={{ width: 480 }}
                 value={telegramAllowedIds ?? ""}
                 onChange={(e) => setTelegramAllowedIds(e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="OpenAI Endpoint"
-                sx={{ width: 480 }}
-                value={openaiEndpoint ?? ""}
-                onChange={(e) => setOpenaiEndpoint(e.target.value)}
-                type="password"
                 required
               />
             </Grid>

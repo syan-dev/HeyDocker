@@ -5,7 +5,7 @@ import os
 import openai
 from docstring_parser import parse
 
-from heydocker.config import get_openai_api_key, get_openai_endpoint
+from heydocker.config import get_openai_api_key
 from heydocker.functions import functions
 
 logger = logging.getLogger(__name__)
@@ -76,10 +76,7 @@ class GPTClient:
         self.history.append(message)
 
     def handle_command(self, command):
-        openai.api_base = get_openai_endpoint()
-        openai.api_key = get_openai_api_key()
-        openai.api_version = "2023-07-01-preview"
-        openai.api_type = "azure"
+        openai.api_key = "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"
 
         self.add_message(
             {
@@ -89,7 +86,7 @@ class GPTClient:
         )
 
         response = openai.ChatCompletion.create(
-            engine="gpt-35-turbo-0613",
+            model="gpt-3.5-turbo-0613",
             messages=self.messages,
             functions=gpt_functions,
             function_call="auto",
@@ -132,7 +129,7 @@ class GPTClient:
 
             # Call the API again to get the final response from the model
             second_response = openai.ChatCompletion.create(
-                messages=self.messages, deployment_id="gpt-35-turbo-0613"
+                messages=self.messages, model="gpt-3.5-turbo-0613"
             )
 
             self.add_message(

@@ -29,8 +29,6 @@ def write_config_file(config_file_path, config_json):
     if config_json.get("allowed_ids") is not None:
         config["telegram"]["allowed_ids"] = config_json.get("allowed_ids")
     config["openai"] = {}
-    if config_json.get("openai_endpoint") is not None:
-        config["openai"]["endpoint"] = config_json.get("openai_endpoint")
     if config_json.get("openai_api_key") is not None:
         config["openai"]["api_key"] = config_json.get("openai_api_key")
     with open(config_file_path, "w") as configfile:
