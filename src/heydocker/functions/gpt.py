@@ -76,7 +76,7 @@ class GPTClient:
         self.history.append(message)
 
     def handle_command(self, command):
-        openai.api_key = "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"
+        openai.api_key = get_openai_api_key()
 
         self.add_message(
             {
